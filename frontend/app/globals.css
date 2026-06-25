@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+/* Default Theme: Dark Mode */
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card-bg: rgba(18, 18, 24, 0.65);
+  --card-hover-bg: rgba(26, 26, 36, 0.8);
+  --card-border: rgba(255, 255, 255, 0.07);
+  --card-border-hover: rgba(139, 92, 246, 0.35);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --card-shadow-hover: 0 12px 40px 0 rgba(139, 92, 246, 0.18);
+  --radial-glow-1: rgba(99, 102, 241, 0.15);
+  --radial-glow-2: rgba(139, 92, 246, 0.05);
+  
+  --text-muted: #a1a1aa; /* zinc-400 */
+  --border-muted: rgba(255, 255, 255, 0.08);
+  --input-bg: rgba(24, 24, 27, 0.5);
+  --input-border: #27272a;
+}
+
+/* Light Theme overrides */
+.light {
+  --background: #f8fafc; /* slate-50 */
+  --foreground: #0f172a; /* slate-900 */
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-hover-bg: rgba(255, 255, 255, 0.95);
+  --card-border: rgba(15, 23, 42, 0.08);
+  --card-border-hover: rgba(139, 92, 246, 0.45);
+  --card-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.04);
+  --card-shadow-hover: 0 12px 40px 0 rgba(139, 92, 246, 0.12);
+  --radial-glow-1: rgba(99, 102, 241, 0.08);
+  --radial-glow-2: rgba(139, 92, 246, 0.02);
+  
+  --text-muted: #475569; /* slate-600 */
+  --border-muted: rgba(15, 23, 42, 0.08);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --input-border: #e2e8f0; /* slate-200 */
+}
+
+@theme {
+  --color-brand-purple: #8b5cf6;
+  --color-brand-pink: #d946ef;
+  --color-brand-cyan: #06b6d4;
+  --color-brand-indigo: #6366f1;
+  
+  /* Map CSS variables to Tailwind colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-text-muted: var(--text-muted);
+  --color-border-muted: var(--border-muted);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Custom utilities for premium aesthetics */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  background: var(--card-hover-bg);
+  border-color: var(--card-border-hover);
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.bg-radial-glow {
+  background: radial-gradient(circle at top, var(--radial-glow-1) 0%, var(--radial-glow-2) 50%, transparent 100%);
+  transition: background 0.3s ease;
+}
+
+.btn-premium {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  transition: all 0.2s ease;
+}
+
+.btn-premium:hover {
+  opacity: 0.95;
+  box-shadow: 0 0 20px 2px rgba(139, 92, 246, 0.4);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom classes for theme transitions */
+.theme-transition {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(20, 20, 25, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.4);
+}
+
+/* Priority badge styles - Dark Mode (Default) */
+.priority-badge-1 {
+  color: #f87171 !important;
+  background-color: rgba(127, 29, 29, 0.25) !important;
+  border-color: rgba(127, 29, 29, 0.4) !important;
+}
+.priority-badge-2 {
+  color: #fb923c !important;
+  background-color: rgba(124, 45, 18, 0.25) !important;
+  border-color: rgba(124, 45, 18, 0.4) !important;
+}
+.priority-badge-3 {
+  color: #fbbf24 !important;
+  background-color: rgba(120, 53, 4, 0.25) !important;
+  border-color: rgba(120, 53, 4, 0.4) !important;
+}
+.priority-badge-4 {
+  color: #60a5fa !important;
+  background-color: rgba(30, 58, 138, 0.25) !important;
+  border-color: rgba(30, 58, 138, 0.4) !important;
+}
+.priority-badge-5 {
+  color: #4ade80 !important;
+  background-color: rgba(20, 83, 45, 0.25) !important;
+  border-color: rgba(20, 83, 45, 0.4) !important;
+}
+
+/* Priority badge styles - Light Mode (Overrides) */
+.light .priority-badge-1 {
+  color: #b91c1c !important;
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+}
+.light .priority-badge-2 {
+  color: #c2410c !important;
+  background-color: #ffedd5 !important;
+  border-color: #fed7aa !important;
+}
+.light .priority-badge-3 {
+  color: #b45309 !important;
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+}
+.light .priority-badge-4 {
+  color: #1d4ed8 !important;
+  background-color: #dbeafe !important;
+  border-color: #bfdbfe !important;
+}
+.light .priority-badge-5 {
+  color: #15803d !important;
+  background-color: #dcfce7 !important;
+  border-color: #bbf7d0 !important;
+}
+
+/* Overdue date indicator */
+.overdue-date {
+  color: #f87171 !important; /* red-400 */
+}
+.light .overdue-date {
+  color: #b91c1c !important; /* red-700 */
+}
+
+/* Completed date indicator */
+.completed-date {
+  color: #4ade80 !important; /* green-400 */
+}
+.light .completed-date {
+  color: #15803d !important; /* green-700 */
+}
+
+/* Due today date indicator */
+.due-today-date {
+  color: #fbbf24 !important; /* amber-400 */
+}
+.light .due-today-date {
+  color: #b45309 !important; /* amber-700 */
+}
+
+
