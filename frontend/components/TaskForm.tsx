@@ -133,11 +133,11 @@ export default function TaskForm({ task, onSubmit, onClose }: TaskFormProps) {
                 onChange={(e) => setPriority(Number(e.target.value))}
                 className="w-full bg-input-bg border border-input-border focus:border-brand-purple/60 focus:ring-1 focus:ring-brand-purple/30 rounded-xl px-4 py-3 text-sm text-foreground transition-all outline-none"
               >
-                <option value={1}>1 - High</option>
-                <option value={2}>2 - Medium High</option>
-                <option value={3}>3 - Medium</option>
-                <option value={4}>4 - Medium Low</option>
-                <option value={5}>5 - Low</option>
+                <option value={1} className="bg-background text-foreground">1 - High</option>
+                <option value={2} className="bg-background text-foreground">2 - Medium High</option>
+                <option value={3} className="bg-background text-foreground">3 - Medium</option>
+                <option value={4} className="bg-background text-foreground">4 - Medium Low</option>
+                <option value={5} className="bg-background text-foreground">5 - Low</option>
               </select>
             </div>
 
