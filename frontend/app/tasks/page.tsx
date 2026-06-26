@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { apiRequest } from "../../utils/api";
@@ -8,24 +8,33 @@ import Navbar from "../../components/Navbar";
 import TaskCard, { Task } from "../../components/TaskCard";
 import TaskForm from "../../components/TaskForm";
 import FilterBar from "../../components/FilterBar";
+import Fuse from "fuse.js";
 
 const LIMIT = 6;
 
 export default function TasksPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [sortValue, setSortValue] = useState("created_at_desc");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  // Statistics
-  const [stats, setStats] = useState({ total: 0, pending: 0, inProgress: 0, completed: 0 });
+  // Statistics derived in memory
+  const stats = useMemo(() => {
+    const counts = { total: 0, pending: 0, inProgress: 0, completed: 0 };
+    allTasks.forEach((t: Task) => {
+      counts.total++;
+      if (t.status === "completed") counts.completed++;
+      else if (t.status === "in_progress") counts.inProgress++;
+      else counts.pending++;
+    });
+    return counts;
+  }, [allTasks]);
 
   // Debounce search query changes
   useEffect(() => {
@@ -42,64 +51,21 @@ export default function TasksPage() {
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const skip = (page - 1) * LIMIT;
-      
-      // Parse sorting: e.g. "created_at_desc" -> sort_by="created_at", sort_order="desc"
-      const lastUnderscore = sortValue.lastIndexOf("_");
-      const sortBy = sortValue.substring(0, lastUnderscore);
-      const sortOrder = sortValue.substring(lastUnderscore + 1);
-
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") {
-        params.append("status", statusFilter);
-      }
-      if (debouncedSearchQuery.trim()) {
-        params.append("search", debouncedSearchQuery.trim());
-      }
-      params.append("sort_by", sortBy);
-      params.append("sort_order", sortOrder);
-      params.append("skip", String(skip));
-      params.append("limit", String(LIMIT + 1));
-
-      const endpoint = `/tasks/?${params.toString()}`;
-      const data = await apiRequest(endpoint);
-
-      if (data.length > LIMIT) {
-        setHasMore(true);
-        setTasks(data.slice(0, LIMIT));
-      } else {
-        setHasMore(false);
-        setTasks(data);
-      }
+      // Pull up to 1000 tasks for local client-side processing
+      const data = await apiRequest("/tasks/?limit=1000");
+      setAllTasks(data);
     } catch (error) {
       console.error("Error fetching tasks:", error);
     } finally {
       setLoading(false);
-    }
-  }, [page, statusFilter, debouncedSearchQuery, sortValue]);
-
-  const fetchStats = useCallback(async () => {
-    try {
-      const allTasks = await apiRequest("/tasks/?limit=100");
-      const counts = { total: 0, pending: 0, inProgress: 0, completed: 0 };
-      allTasks.forEach((t: Task) => {
-        counts.total++;
-        if (t.status === "completed") counts.completed++;
-        else if (t.status === "in_progress") counts.inProgress++;
-        else counts.pending++;
-      });
-      setStats(counts);
-    } catch (error) {
-      console.error("Error fetching stats:", error);
     }
   }, []);
 
   useEffect(() => {
     if (user) {
       fetchTasks();
-      fetchStats();
     }
-  }, [user, fetchTasks, fetchStats]);
+  }, [user, fetchTasks]);
 
   const handleCreateOrUpdate = async (taskData: {
     title: string;
@@ -122,7 +88,6 @@ export default function TasksPage() {
         });
       }
       fetchTasks();
-      fetchStats();
     } catch (error) {
       console.error("Failed to save task:", error);
       throw error;
@@ -135,9 +100,8 @@ export default function TasksPage() {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
-      // Optimized state update
-      setTasks(tasks.map((t) => (t.id === id ? { ...t, status } : t)));
-      fetchStats();
+      // Optimized client-side state update
+      setAllTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
     } catch (error) {
       console.error("Failed to update status:", error);
     }
@@ -150,11 +114,61 @@ export default function TasksPage() {
         method: "DELETE",
       });
       fetchTasks();
-      fetchStats();
     } catch (error) {
       console.error("Failed to delete task:", error);
     }
   };
+
+  // Filter, search, and sort tasks dynamically in memory
+  const filteredAndSortedTasks = useMemo(() => {
+    let list = allTasks;
+
+    // 1. Status Filter
+    if (statusFilter !== "all") {
+      list = list.filter((t) => t.status === statusFilter);
+    }
+
+    // 2. Fuzzy Search with Fuse.js
+    if (debouncedSearchQuery.trim()) {
+      const fuse = new Fuse(list, {
+        keys: ["title", "description"],
+        threshold: 0.4, // Typo tolerance threshold
+      });
+      list = fuse.search(debouncedSearchQuery.trim()).map((result) => result.item);
+    }
+
+    // 3. Sort
+    const lastUnderscore = sortValue.lastIndexOf("_");
+    const sortBy = sortValue.substring(0, lastUnderscore);
+    const sortOrder = sortValue.substring(lastUnderscore + 1);
+
+    return [...list].sort((a, b) => {
+      if (sortBy === "due_date") {
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        const valA = new Date(a.due_date).getTime();
+        const valB = new Date(b.due_date).getTime();
+        return sortOrder === "desc" ? valB - valA : valA - valB;
+      } else if (sortBy === "priority") {
+        return sortOrder === "desc" ? b.priority - a.priority : a.priority - b.priority;
+      } else { // created_at
+        const valA = new Date(a.created_at || 0).getTime();
+        const valB = new Date(b.created_at || 0).getTime();
+        return sortOrder === "desc" ? valB - valA : valA - valB;
+      }
+    });
+  }, [allTasks, statusFilter, debouncedSearchQuery, sortValue]);
+
+  // 4. Pagination slicing
+  const tasks = useMemo(() => {
+    const skip = (page - 1) * LIMIT;
+    return filteredAndSortedTasks.slice(skip, skip + LIMIT);
+  }, [filteredAndSortedTasks, page]);
+
+  const hasMore = useMemo(() => {
+    const skip = (page - 1) * LIMIT;
+    return filteredAndSortedTasks.length > skip + LIMIT;
+  }, [filteredAndSortedTasks, page]);
 
   const openCreateForm = () => {
     setSelectedTask(null);

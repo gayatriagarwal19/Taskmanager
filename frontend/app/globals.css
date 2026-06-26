@@ -4,6 +4,7 @@
 :root {
   --background: #09090b;
   --foreground: #fafafa;
+  color-scheme: dark;
   --card-bg: rgba(18, 18, 24, 0.65);
   --card-hover-bg: rgba(26, 26, 36, 0.8);
   --card-border: rgba(255, 255, 255, 0.07);
@@ -23,6 +24,7 @@
 .light {
   --background: #f8fafc; /* slate-50 */
   --foreground: #0f172a; /* slate-900 */
+  color-scheme: light;
   --card-bg: rgba(255, 255, 255, 0.75);
   --card-hover-bg: rgba(255, 255, 255, 0.95);
   --card-border: rgba(15, 23, 42, 0.08);
@@ -205,6 +207,12 @@ body {
 }
 .light .due-today-date {
   color: #b45309 !important; /* amber-700 */
+}
+
+/* Global select option styling for dark/light mode visibility */
+select option {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
 }
 
 
